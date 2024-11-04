@@ -1,0 +1,346 @@
+---
+title: "Boostrap Notes"
+output: 
+  html_document:
+    theme: united
+    toc: true
+    toc_float: true
+  pdf_document: default
+date: "2024-10-23"
+---
+
+
+# Notes 10/23/24
+
+```{r}
+#install.packages("tinytex")
+library(knitr)
+library(tinytex)
+```
+
+
+Central Limit Theorem:
+$$\bar{x} \sim N(\mu_{1},\frac{\sigma^2}{n})$$
+
+$$\frac{\bar{x}-\mu}{\sqrt{\frac{s^2}{n}}} \sim N(0,1)$$
+
+Inference by Confidence Interval with $\mu$ unknown
+$$\frac{\bar{x}-\mu}{\sqrt{\frac{s^2}{n}}} \sim N(0,1)$$
+
+Median(Distribution) </br>
+Median$(x_{1}...x_{n})$</br>
+
+You have summary statistics but you do not know the distribution. </br>
+Estimator: $\hat{\theta}$</br>
+
+We will use bootstrapping to find the unknown distribution </br>
+
+<mark>Use Bootstrapping PDF 1 Motivating Examples</mark></br>
+
+There are 2 types of bootstrapping </br>
+1. Parametric </br>
+2. Non-Parametric </br>
+
+The confidence interval of a median of a normal distribution should cover the mean since $\mu \approx median$ </br>
+
+sample
+
+```{r}
+set.seed(2)
+n <- 30 # sample size
+data <- round(rnorm(30,5,3))
+data[1:10]
+
+b <- 1000 # number of replications
+results <- rep(0, b)
+for(aa in 1:b){
+  resample <- sample(data,size = n,replace = T)
+  results[aa] <- median(resample)
+}
+
+hist(results)
+```
+
+We can use the above distribution to find the target median. </br>
+
+Now we will calculate the standard deviation of the distribution:
+```{r}
+sd(results)
+```
+Therefore: $Var(\hat{M_{n}})=0.612922^2$</br>
+
+Also, the confidence intervals:
+```{r}
+results.sort <- sort(results)
+results.sort[round(0.025*b)]
+results.sort[round(0.975*b)]
+```
+
+<mark>This is the basic bootsrapping technique to find the median of a dataset with an unknown distribution</mark></br>
+
+<mark>Exam Study Materials:</br>
+
+Newton Method</br>
+Model Selection</br>
+Cross Validation</br>
+Information Criteria</br>
+Gaussian Process</mark></br>
+We will need self written code from Gaussian Processes tab in iCollege</br>
+
+
+# Procedure 2
+<u>How to be more efficient when writing code?</br></u>
+We can replace the for loop with the lapply function:
+```{r}
+B <- 1000
+resamples <- lapply(1:B, function(i) sample(data, replace = T))
+r.median <- sapply(resamples,median)
+r.median
+#resamples[1]
+```
+
+
+# Procedure 3 (Timed)
+```{r}
+time.a <- proc.time()[3]
+b <- 1000
+kk <- 1
+resample.m <- matrix(0,nrow = b,ncol = n)
+apply(matrix(1:b),1,FUN=function(i){
+  resample.m[kk,] <<- sample(data,replace = T)
+  kk <<- kk + 1
+})
+time.b <- proc.time()[3]
+cat("Time to Calculate: ",time.b - time.a)
+```
+
+Calculates the Medians
+```{r}
+# 1 applies the function to each row, 2 is for each column
+head(apply(resample.m,1,FUN = median)) 
+```
+
+Another Technique: Writing a Function
+<mark>To assign a global variable you use "<<-"</mark></br>
+
+
+# More Notes for the Cumulative distribution Function:
+You have a target distribution and you want to calculate the summary statistics: (m = median)
+$$S(F_{i})=m$$
+$$\hat{M_{n}}=s(\hat{F_{i}})\text{ }goes\text{ }to\text{ }S(F_{i})$$
+Therefore:
+$$F_{i}=P(X \leq x)$$
+is
+$$\hat{F}=\frac{1}{n}\sum^{n}_{i=i}I(X_{i} \leq x)$$
+
+$$residuals = y - X^{T}\hat{\beta}$$</br>
+$$=y - X^{T}(X^TX)^{-1}X^{T}$$</br>
+$$\epsilon \sim N(0,\sigma^2)=I-X^{T}(X^{T}X)^{-1}X^{T}$$</br>
+$$=$$ Erased last equation (Not Important)
+
+Unknown Bootstrapping Procedure:
+$$\epsilon \sim F_{i}$$
+
+Mathematical Explanation of Bootstraping for Loop</br>
+for(aa in 1:B){</br>
+$(\hat{Y},\tilde{X})$=resample</br>
+residual = $\hat{Y}-\tilde{X}\hat{\beta}$</br>
+}
+
+# Notes 11/4/24
+
+Suppose we want to estimate a parameter $theta$ therefore,
+$$\theta \text{ }-> \hat{\theta}$$
+
+Therefore, we need to know the distribution of $\hat{\theta}$. This is when we will use bootstrapping.
+
+$$d(\theta)$$
+
+Suppose we want to estimate the population mean: $/mu$. A good reference is to have some sample $x_1 ... x_n$ where $x \sim distribution(\mu,\sigma^2)$. We can use the average to guess the population mean.
+
+How do you know how close $\bar{x}$ and $\mu$ are?
+
+We want to construct a confidence interval to estimate the population mean. Therefore, we want to know in general, what the range is for $\mu$.
+
+If $n$ is large, we can use the **Central Limit Theorem** for $\bar{X}\sim N(\mu,\sigma^2)$. Therefore we get:
+$$P(\bar{X}-2\frac{\sigma}{\sqrt{n}} \leq \mu \leq \bar{X}+2\frac{\sigma}{\sqrt{n}})$$
+
+We might not know the population standard deviation or variance in the beginning of the experiment/data analysis. $\sigma^2$ can be estimated by $S^2$.
+
+**$\bar{X}$ follows standard normal distribution**
+
+Hypothesis testing:
+$H_{0}:$</br>
+$H_{a}:$
+
+Therefore there are three ways to make inference on a statistic
+
+1. point estimations
+2. confidence interval
+3. hypothesis testing
+
+<u>**We must understand the distribution of our random variable**</u>
+
+# Parametric vs. Nonparametric Bootstrapping
+
+**Key Point:** We will calculate our statistics from sampled data $b$ times and we calculate an estimator which shows us the distribution. We will use this estimator to make inference. 
+
+$\mu$: (Population) Average Commute Time
+
+Bootstrap Algorithm:
+```{r}
+library(Lock5Data)
+data(CommuteAtlanta)
+str(CommuteAtlanta)
+## 'data.frame': 500 obs. of 5 variables:
+## £ City : Factor w/ 1 level "Atlanta": 1 1 1 1 1 1 1 1 1 1 ...
+## £ Age : int 19 55 48 45 48 43 48 41 47 39 ...
+## £ Distance: int 10 45 12 4 15 33 15 4 25 1 ...
+## £ Time : int 15 60 45 10 30 60 45 10 25 15 ...
+## £ Sex : Factor w/ 2 levels "F","M": 2 2 2 1 1 2 2 1 2 1 ...
+
+# Construct the confidence interval 
+time.mean = with(CommuteAtlanta, mean(Time))
+cat("Sample Mean: ",time.mean)
+```
+The Sample average is 29.11, this is our estimate $\hat{\mu}$
+
+
+## Parametric Bootstrapping:
+
+We want more information about this mean, therefore we will use parametric bootstrapping:
+
+* Assume each commute time is iid from a normal distribution with mean $\mu$ and variance $\sigma^2$. Since we are using **parametric** bootstrapping.
+
+* The parameters are: $\theta = c(\mu,\sigma^2)$ **Both of these are unknown**
+$\theta$ = $(\mu,\sigma^2)$</br>
+$F_{\theta}$ = the normal distribution.</br>
+
+We can resample from $F_{\theta}$ using maximum likelihood.
+
+Likelihood Function: 
+$$\prod^{n}_{i=1}\frac{1}{\sqrt{{2\pi\sigma^2}}}e^{-\frac{(X_{i}-\mu)^2}{2\sigma^2}} = L(\theta)$$
+
+Therefore,
+$$\mu_{MLE} = \bar{X}$$
+```{r}
+muhat <- mean(CommuteAtlanta$Time)
+sigma2hat <- var(CommuteAtlanta$Time)
+cat("Sample Variance: ",sigma2hat,"\n")
+cat("MLE Variance", mean((CommuteAtlanta$Time - muhat)^2))
+
+# Resample
+resample <- rnorm(500,muhat,sqrt(sigma2hat))
+head(resample)
+```
+
+Distribution of original commute times 
+```{r}
+# Compare with origional distribution
+hist(CommuteAtlanta$Time)
+```
+
+Distribution of Resample
+```{r}
+hist(resample)
+```
+
+Resample Code
+```{r}
+# Resample Many Times
+res.v <- c()
+for(B in 1:2000){
+  resample <- rnorm(500,muhat,sqrt(sigma2hat))
+  val <- mean(resample)
+  res.v <- append(res.v,val)
+}
+
+head(res.v)
+```
+
+Distribution of Resamples
+```{r}
+hist(res.v) # Distribution of xbar
+```
+
+# confidence Interval Method
+
+95% confidence interval for mean.
+```{r}
+# Percentile Method:
+quantile(x = res.v,probs = c(0.025,0.975))
+```
+
+# Nonparametric Bootstrapping:
+
+$X_1 ... X_n \sim F_{i}$ where $F_{i}$ is unknown
+
+**Empirical Distribution**
+
+Assume that only observable data points have a probability. Each data point with probability $\frac{1}{n}$ therefore $P(X=X_{i})=\frac{1}{n}$
+
+```{r}
+# Nonparametric Boostrapping
+res.np <- c()
+for(B in 1:2000){
+  resample <- sample(CommuteAtlanta$Time,size = length(CommuteAtlanta$Time), replace = T)
+  val <- mean(resample)
+  res.np <- append(res.np,val)
+}
+
+head(res.np)
+hist(res.np)
+```
+Confidence Interval
+```{r}
+quantile(x = res.np,probs = c(0.025,0.975))
+```
+
+Quick Example:
+
+Suppose we have regression data ${(X_{i},Y_{i})\}$
+
+We have the true model $y_{i} = \beta_{0}+\beta_{1}x_{i}+\epsilon$, where $\epsilon \sim N(0,\sigma^2)$
+
+Let's use parametric bootstrapping for the residuals. $\beta_{0}$ and $\beta_{1}$ follow a normal distribution where the variance is $\sigma^2(X^TX)^{-1}$
+
+Normal distribution might not be powerful enough to model residuals, therefore we will use nonparametric bootstrapping:
+
+**From Topic_10... handout on iCollege** 
+```{r}
+#Example 3
+## 1000 resamples
+n_samples <- 2000
+## N observations
+n_obs <- nrow(mtcars)
+## empty storage data frame for the coefficients
+coef_storage <- data.frame(
+intercept = rep(NA, n_samples),
+slope = rep(NA, n_samples)
+)
+for(i in 1:n_samples){
+## sample dependent and independent variables
+row_ids <- sample(1:n_obs, size = n_obs, replace = TRUE)
+new_df <- mtcars[row_ids, ]
+## construct model
+model <- lm(mpg ~ wt, data = new_df)
+## store coefficients
+# intercept
+coef_storage[i, 1] <- coef(model)[1]
+# slope
+coef_storage[i, 2] <- coef(model)[2]
+
+}
+## see results
+head(coef_storage)
+tail(coef_storage)
+## 95% CI for intercept
+quantile(coef_storage$intercept, c(0.025, 0.975))
+## 2.5% 97.5%
+## 33.03338 42.36051
+## 95% CI for slope
+quantile(coef_storage$slope, c(0.025, 0.975))
+## 2.5% 97.5%
+## -7.014044 -4.147695
+```
+
